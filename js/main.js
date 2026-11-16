@@ -56,7 +56,8 @@ function buildHeroLaureates() {
     const img = el('img');
     img.src = p.portrait;
     img.alt = '';                     // decorative here; named in the text beside it
-    img.loading = 'lazy';
+    img.loading = 'eager';            // above the fold — lazy here just delays the hero
+    img.fetchPriority = 'high';
     img.decoding = 'async';
     img.addEventListener('error', () => { img.style.display = 'none'; });
     card.append(img);
