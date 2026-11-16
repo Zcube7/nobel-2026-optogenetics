@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A Switch for a Neuron — The 2026 Nobel Prize in Physiology or Medicine</title>
+<meta name="description" content="How a light-sensitive protein from pond algae became a switch for single nerve cells. An interactive explainer on the 2026 Nobel Prize in Physiology or Medicine, awarded to Peter Hegemann, Georg Nagel and Karl Deisseroth.">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="A Switch for a Neuron — The 2026 Nobel Prize in Physiology or Medicine">
+<meta property="og:description" content="Interactive explainer: light-gated ion channels and optogenetics, with a working simulation of a neuron driven by light.">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<a class="skip" href="#act-1">Skip to the story</a>
+
+<!-- ============================ HERO ============================ -->
+<header class="hero">
+  <canvas class="hero__bg" id="heroCanvas" aria-hidden="true"></canvas>
+  <div class="hero__inner">
+    <p class="hero__kicker">
+      <span class="medal" aria-hidden="true"></span>
+      <span><span data-prize="category"></span> &middot; <span data-prize="year"></span></span>
+    </p>
+
+    <h1 class="hero__title">A switch<br>for a neuron</h1>
+
+    <p class="hero__cite">
+      &ldquo;<span data-prize="citation"></span>&rdquo;
+    </p>
+
+    <p class="hero__sub">
+      For a century, neuroscience could watch the brain but not steer it. Then three researchers
+      followed a pond alga&rsquo;s taste for sunlight all the way to a protein that lets you switch a
+      single nerve cell on with a flash of blue light.
+    </p>
+
+    <ul class="hero__meta">
+      <li><strong data-prize="awarder"></strong></li>
+      <li>Announced <span data-prize="announced"></span></li>
+      <li><span data-prize="amount"></span>, <span data-prize="amountNote"></span></li>
+    </ul>
+
+    <div class="hero__laureates" id="heroLaureates"></div>
+
+    <p class="hero__scroll" aria-hidden="true">Scroll <span>&darr;</span></p>
+  </div>
+</header>
+
+<main>
+
+<!-- ======================= THE PROBLEM ========================== -->
+<section class="band band--problem" id="problem">
+  <div class="wrap wrap--narrow">
+    <p class="eyebrow">The problem</p>
+    <h2>A map with no switches</h2>
+
+    <blockquote class="epigraph">
+      <p data-epigraph="text"></p>
+      <cite data-epigraph="attribution"></cite>
+    </blockquote>
+
+    <p>
+      A human brain weighs about <span data-fact="brainMass">—</span> and holds
+      <span data-fact="neuronCount">—</span> nerve cells, each wired to thousands of others.
+      Through the twentieth century researchers worked out roughly which regions did what: this
+      patch for movement, that one for speech.
+    </p>
+
+    <p>
+      But the tools were blunt. You could damage a region and see what broke, or record from it and
+      see what lit up — and neither proves that <em>these</em> cells cause <em>that</em> feeling.
+      Cells doing completely different jobs sit tangled together; a single neuron may reach clear
+      across the brain. The picture that emerged was, in the Nobel Committee&rsquo;s phrase, a blurry
+      photograph.
+    </p>
+
+    <figure class="causality">
+      <div class="causality__panel" data-mode="watch">
+        <h3>Watching</h3>
+        <canvas class="causality__canvas" data-causality="watch" aria-hidden="true"></canvas>
+        <p>Record while the animal behaves. Cells light up — but so do a thousand others, and you
+          cannot tell which one <em>mattered</em>.</p>
+      </div>
+      <div class="causality__arrow" aria-hidden="true">
+        <span>what was missing</span>
+      </div>
+      <div class="causality__panel" data-mode="drive">
+        <h3>Driving</h3>
+        <canvas class="causality__canvas" data-causality="drive" aria-hidden="true"></canvas>
+        <p>Switch on <em>one chosen type</em> of cell and nothing else. If the behaviour follows,
+          you have your answer.</p>
+      </div>
+      <figcaption>
+        Schematic. The second panel is what optogenetics made possible.
+      </figcaption>
+    </figure>
+
+    <p>
+      Francis Crick, who had moved from DNA to consciousness, put his finger on the gap in
+      <strong>1979</strong>: neuroscience needed a way to control one kind of neuron while leaving
+      every other cell alone. Two decades later he suggested what the signal should be —
+      <strong>light</strong>, because light is fast enough to keep up with a nerve impulse. He
+      conceded the idea sounded far-fetched.
+    </p>
+
+    <p class="pull">
+      It was already swimming around in a pond.
+    </p>
+  </div>
+</section>
+
+<!-- ========================== ACT I ============================== -->
+<section class="band band--alga act" id="act-1">
+  <div class="wrap">
+    <p class="eyebrow"><span class="act__n">Act I</span> &middot; 1980s–1992 &middot; Peter Hegemann</p>
+    <h2>The alga that swims towards the light</h2>
+
+    <div class="act__grid">
+      <div class="act__text">
+        <p>
+          <em>Chlamydomonas</em> is a single-celled green alga with two whip-like flagella and one
+          piece of equipment that matters here: an <strong>eyespot</strong>, a speck of orange on the
+          side of the cell containing the light-catching molecule retinal.
+        </p>
+        <p>
+          Stir the algae into a dish and the water turns faintly green. Shine a light on one side and
+          the green <em>moves</em> — millions of cells swimming toward the lamp.
+        </p>
+        <p class="hint">
+          <strong>Try it:</strong> click or tap anywhere in the dish to move the lamp.
+        </p>
+
+        <div class="latency">
+          <h3>How fast is the alga, really?</h3>
+          <p>
+            Hegemann put microelectrodes on the cell and measured the electrical response to a flash.
+            It arrived after about <span data-fact="eyespotLatency">—</span>. For comparison, light
+            hitting a human eye sets off a chain of chemical steps that takes
+            <span data-fact="humanEyeLatency">—</span> — more than twenty times longer.
+          </p>
+          <div class="latency__bars" id="latencyBars"></div>
+        </div>
+
+        <p>
+          That speed was the clue. A long chemical relay cannot run in half a millisecond. Hegemann&rsquo;s
+          conclusion, in the early 1990s, was that the alga must be doing it with
+          <strong>one protein</strong> that both catches the photon and opens as an ion channel.
+        </p>
+        <p>
+          No such protein was known. Colleagues were sceptical. Isolating it from the eyespot failed
+          for years — pulled out of the cell, the thing fell apart.
+        </p>
+      </div>
+
+      <figure class="act__viz">
+        <div class="viz" id="dishViz">
+          <canvas id="dishCanvas"></canvas>
+          <div class="viz__hud" id="dishHud"></div>
+        </div>
+        <div class="controls">
+          <label class="ctl ctl--switch">
+            <input type="checkbox" id="dishLight" checked>
+            <span class="ctl__label">Lamp on</span>
+          </label>
+          <label class="ctl">
+            <span class="ctl__label">Cells <output id="dishCountOut"></output></span>
+            <input type="range" id="dishCount" min="40" max="400" step="20" value="220">
+          </label>
+          <button class="btn" id="dishReset" type="button">Scatter again</button>
+        </div>
+        <figcaption>
+          Each dot is one alga steering by the light its eyespot sees as the cell rolls. A simulation
+          of phototaxis, not a recording.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== ACT II ============================= -->
+<section class="band band--channel act" id="act-2">
+  <div class="wrap">
+    <p class="eyebrow"><span class="act__n">Act II</span> &middot; 2002–2003 &middot; Georg Nagel &amp; Peter Hegemann</p>
+    <h2>One protein, two jobs</h2>
+
+    <div class="act__grid act__grid--flip">
+      <div class="act__text">
+        <p>
+          Around 2000 a Japanese team published the <em>Chlamydomonas</em> genome. Hegemann&rsquo;s group
+          combed it and found two genes that looked like light-catching proteins. Which one — if
+          either — was the channel?
+        </p>
+        <p>
+          Hegemann sent them to <strong>Georg Nagel</strong> in Frankfurt, who had the right trick: put
+          the gene into a frog&rsquo;s egg cell. The oocyte is enormous, easy to impale with an electrode,
+          and will obligingly manufacture whatever protein you give it and park it in its membrane.
+        </p>
+        <p>
+          Nagel injected the genes, waited, and shone light on the eggs. Both proteins were ion
+          channels that opened in the light. The decade-old hypothesis was right. They named them
+          <strong>channelrhodopsin-1</strong> and <strong>channelrhodopsin-2</strong>.
+        </p>
+        <p>
+          Channelrhodopsin-2 was the one that mattered. It opened within
+          <span data-fact="channelOpening">—</span> of the light arriving, and it let positive ions
+          pour in — enough to make a clean electrical signal. Then came the test that decided
+          everything: they put the gene into <em>human</em> kidney cells, and into hamster cells. Those
+          cells became light-sensitive too.
+        </p>
+        <p>
+          In their 2003 paper, Nagel and Hegemann wrote that channelrhodopsin-2 could be used as a
+          tool to generate electrical impulses in cells using light. The sentence was an invitation.
+        </p>
+        <p class="hint">
+          <strong>Try it:</strong> drag the wavelength slider. Only blue light opens the channel —
+          which is why green and red leave it alone, and why experiments later used other colours to
+          drive <em>other</em> opsins independently.
+        </p>
+      </div>
+
+      <figure class="act__viz">
+        <div class="viz" id="channelViz">
+          <canvas id="channelCanvas"></canvas>
+        </div>
+        <div class="controls">
+          <label class="ctl">
+            <span class="ctl__label">
+              Wavelength <output id="nmOut"></output>
+              <em class="ctl__aux" id="nmEff"></em>
+            </span>
+            <input type="range" id="nmSlider" min="400" max="650" step="1" value="470"
+                   aria-describedby="nmEff">
+          </label>
+          <label class="ctl ctl--switch">
+            <input type="checkbox" id="channelLight" checked>
+            <span class="ctl__label">Light on</span>
+          </label>
+          <button class="btn" id="channelFlash" type="button">Dark-adapt, then flash</button>
+        </div>
+        <figcaption>
+          Cross-section of the cell membrane. The action spectrum peaks at
+          <span data-chr2="peakNm">470</span> nm; the current trace below the membrane is the
+          four-state photocycle model running live.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== ACT III ============================ -->
+<section class="band band--neuron act" id="act-3">
+  <div class="wrap">
+    <p class="eyebrow"><span class="act__n">Act III</span> &middot; 2005 &middot; Karl Deisseroth</p>
+    <h2>The neuron obeys</h2>
+
+    <div class="act__intro">
+      <p>
+        <strong>Karl Deisseroth</strong> had trained as a psychiatrist as well as a scientist. In the
+        clinic he had watched patients whose treatments barely worked, and concluded that the only way
+        forward was to understand what neurons were actually doing in a living brain. When he heard
+        about channelrhodopsin-2 he wrote to Nagel and asked for the DNA.
+      </p>
+      <p>
+        He put it into cultured rat neurons — worried the foreign gene would poison these notoriously
+        delicate cells. It did not. He flashed blue light. The neurons fired, on command, on the
+        millisecond timescale, and passed the signal on to their neighbours. That was 2005.
+      </p>
+    </div>
+
+    <figure class="act__viz act__viz--wide">
+      <div class="viz viz--neuron" id="neuronViz">
+        <canvas id="neuronCanvas"></canvas>
+      </div>
+
+      <div class="controls controls--grid">
+        <label class="ctl">
+          <span class="ctl__label">Light pulse rate <output id="freqOut"></output></span>
+          <input type="range" id="freqSlider" min="1" max="60" step="1" value="10">
+        </label>
+        <label class="ctl">
+          <span class="ctl__label">Pulse width <output id="pwOut"></output></span>
+          <input type="range" id="pwSlider" min="1" max="20" step="1" value="5">
+        </label>
+        <label class="ctl">
+          <span class="ctl__label">Light power <output id="powerOut"></output></span>
+          <input type="range" id="powerSlider" min="2" max="100" step="2" value="100">
+        </label>
+        <label class="ctl">
+          <span class="ctl__label">
+            Opsin in this cell <output id="exprOut"></output>
+            <em class="ctl__aux">how much channelrhodopsin it made</em>
+          </span>
+          <input type="range" id="exprSlider" min="0" max="60" step="1" value="20">
+        </label>
+        <label class="ctl ctl--switch">
+          <input type="checkbox" id="opsinToggle" checked>
+          <span class="ctl__label">Channelrhodopsin present</span>
+          <em class="ctl__aux">switch off for a control cell</em>
+        </label>
+        <div class="ctl ctl--presets">
+          <span class="ctl__label">Presets</span>
+          <div class="preset-row">
+            <button class="btn btn--sm" type="button" data-preset="published">The 2005 result</button>
+            <button class="btn btn--sm" type="button" data-preset="block">Push it too hard</button>
+            <button class="btn btn--sm" type="button" data-preset="dim">Too little opsin</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="readout" id="neuronReadout"></div>
+
+      <figcaption>
+        A Hodgkin&ndash;Huxley neuron driven by a four-state channelrhodopsin-2 photocycle, integrated
+        live in your browser. Every rate constant is from the published models; the amount of opsin is
+        yours to set, as it varies cell to cell in a real experiment.
+      </figcaption>
+    </figure>
+
+    <div class="act__after">
+      <h3>Three ways this goes wrong — all of them real</h3>
+      <div class="cards">
+        <article class="card">
+          <h4>Not enough opsin</h4>
+          <p>
+            Below roughly a fifth of the default expression the photocurrent never reaches threshold.
+            The light is on, the channel opens, and the cell simply sits there. Slide
+            <em>opsin</em> down to see it.
+          </p>
+        </article>
+        <article class="card">
+          <h4>The channel runs down</h4>
+          <p>
+            Channelrhodopsin-2 does not reset instantly. After a flash, part of the protein population
+            sits in a light-adapted closed state that takes <strong>seconds</strong> to recover. Drive
+            it fast and each pulse has fewer channels available than the last — watch the photocurrent
+            trace shrink along the train.
+          </p>
+        </article>
+        <article class="card">
+          <h4>The cell gets stuck</h4>
+          <p>
+            Past a certain rate the leftover current never fully decays between pulses. The membrane
+            stays slightly depolarised, sodium channels stay inactivated, and the neuron falls into
+            <strong>depolarisation block</strong>: it stops firing altogether rather than firing faster.
+          </p>
+        </article>
+      </div>
+      <p class="note">
+        That ceiling is why the field kept engineering new opsins after 2005 — faster variants that
+        recover sooner, and others that <em>silence</em> neurons instead of exciting them.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== ACT IV ============================= -->
+<section class="band band--vivo act" id="act-4">
+  <div class="wrap">
+    <p class="eyebrow"><span class="act__n">Act IV</span> &middot; 2007 &middot; into a living brain</p>
+    <h2>Light in, whiskers out</h2>
+
+    <div class="act__grid">
+      <div class="act__text">
+        <p>
+          A neuron in a dish is a long way from a brain. The next step took two more years: deliver the
+          channelrhodopsin-2 gene to <em>one cell type</em> in the motor cortex of a living mouse, then
+          get light to it through a thin optical fibre threaded through a small hole in the skull.
+        </p>
+        <p>
+          Light in. Whiskers move. The experiment is almost comically simple and it settled the
+          question Crick had posed: these cells, and not their neighbours, drive this movement.
+        </p>
+        <p>
+          The same year, the method woke sleeping mice on cue by switching on a cell type suspected of
+          controlling wakefulness. In <strong>2012</strong>, working with Susumu Tonegawa, Deisseroth
+          reactivated an <em>engram</em> — the specific pattern of cells laid down when a mouse learned
+          to fear a place. Light on, and the mouse was afraid of nothing at all. It was the first
+          demonstration of exactly which neurons a particular memory needs.
+        </p>
+        <p class="hint">
+          <strong>Try it:</strong> the fibre below carries whatever pulse train you set in Act III.
+          Push the rate past the cell&rsquo;s ceiling and the whiskers stop moving, too.
+        </p>
+      </div>
+
+      <figure class="act__viz">
+        <div class="viz" id="mouseViz">
+          <canvas id="mouseCanvas"></canvas>
+        </div>
+        <div class="controls">
+          <button class="btn" id="mousePlay" type="button" data-state="play">Deliver the pulse train</button>
+          <p class="controls__status" id="mouseStatus"></p>
+        </div>
+        <figcaption>
+          Schematic head, driven by the live simulation from Act III: each spike the model produces
+          deflects the whiskers.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= TIMELINE ============================ -->
+<section class="band band--time" id="timeline">
+  <div class="wrap">
+    <p class="eyebrow">How it happened</p>
+    <h2>Thirty-four years, three laboratories</h2>
+    <p class="lede">
+      Nobody set out to invent a tool for neuroscience. The thread starts with a question about
+      pond scum.
+    </p>
+    <ol class="timeline" id="timelineList"></ol>
+  </div>
+</section>
+
+<!-- ========================== IMPACT ============================= -->
+<section class="band band--impact" id="impact">
+  <div class="wrap">
+    <p class="eyebrow">What it opened up</p>
+    <h2>Circuits you can now point at</h2>
+    <p class="lede">
+      Because you can switch one cell type and watch what follows, these are no longer correlations.
+      Each of these circuits has been identified with optogenetics:
+    </p>
+    <ul class="circuits" id="circuitsList"></ul>
+
+    <h3 class="impact__h3">And beyond the brain</h3>
+    <div class="cards" id="beyondList"></div>
+
+    <div class="clinic">
+      <h3>In people</h3>
+      <p>
+        The first clinical results are in. In an ongoing trial, a channelrhodopsin-like protein was
+        placed in the retina of a person blinded by retinitis pigmentosa, a disease that destroys the
+        rods and cones. Wearing light-emitting goggles, they could make out objects on a table and
+        pick them up.
+      </p>
+      <p>
+        There is hope, too, for cochlear implants: today they stimulate the auditory nerve with
+        electricity, which spreads. Light would not.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== LAUREATES ============================ -->
+<section class="band band--people" id="laureates">
+  <div class="wrap">
+    <p class="eyebrow">The laureates</p>
+    <h2>Three people, one switch</h2>
+    <div class="people" id="peopleList"></div>
+    <p class="note">
+      The prize is <span data-prize="amount"></span>, <span data-prize="amountNote"></span>.
+      &ldquo;<span data-prize="citation"></span>&rdquo;
+    </p>
+  </div>
+</section>
+
+<!-- ========================= SOURCES ============================= -->
+<section class="band band--src" id="sources">
+  <div class="wrap wrap--narrow">
+    <p class="eyebrow">Sources</p>
+    <h2>Where every claim here comes from</h2>
+    <p class="lede">
+      The narrative and all quoted figures follow the Nobel Committee&rsquo;s own 2026 material. The
+      simulations are built from the published models cited below.
+    </p>
+    <div id="sourcesList"></div>
+
+    <div class="colophon">
+      <h3>About this page</h3>
+      <p>
+        Everything here is drawn in code — no illustration from nobelprize.org is reproduced. The
+        Committee&rsquo;s own figures by Mattias Karlén are worth seeing and are linked from the
+        <a href="https://www.nobelprize.org/prizes/medicine/2026/press-release/" target="_blank" rel="noopener">press release</a>.
+      </p>
+      <p>
+        Portraits are from Wikimedia Commons under their own licences — see
+        <a href="assets/portraits/CREDITS.md">assets/portraits/CREDITS.md</a>. The code is MIT
+        licensed. No tracking, no analytics, no network calls: the page runs entirely offline once
+        loaded.
+      </p>
+      <p class="colophon__repo" id="repoLine"></p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <p>
+    An independent explainer. Not affiliated with, or endorsed by, the Nobel Foundation or the
+    Nobel Assembly at Karolinska Institutet. &ldquo;Nobel Prize&rdquo; is a registered trademark of
+    the Nobel Foundation.
+  </p>
+</footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

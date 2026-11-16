@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="b" cx="50%" cy="34%" r="62%">
+      <stop offset="0" stop-color="#8fd0ff"/>
+      <stop offset="1" stop-color="#1b4a86"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#080b12"/>
+  <!-- light cone -->
+  <path d="M26 6h12l6 20H20z" fill="url(#b)" opacity=".55"/>
+  <!-- membrane -->
+  <rect x="4" y="27" width="56" height="10" fill="#c9a227" opacity=".18"/>
+  <line x1="4" y1="27" x2="60" y2="27" stroke="#c9a227" stroke-opacity=".5"/>
+  <line x1="4" y1="37" x2="60" y2="37" stroke="#c9a227" stroke-opacity=".5"/>
+  <!-- the open channel -->
+  <path d="M24 25h5l2 14h-6z" fill="#4da6ff"/>
+  <path d="M40 25h-5l-2 14h6z" fill="#4da6ff"/>
+  <!-- cations falling through -->
+  <circle cx="32" cy="22" r="2.4" fill="#ff6b6b"/>
+  <circle cx="32" cy="43" r="2.4" fill="#ff6b6b" opacity=".85"/>
+  <circle cx="32" cy="53" r="2.4" fill="#ff6b6b" opacity=".45"/>
+</svg>
