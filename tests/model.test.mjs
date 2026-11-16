@@ -9,7 +9,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   simulate, DEFAULTS, CHR2, HH, phi, restingGates,
-  alphaM, alphaN, actionSpectrum, wavelengthToRGB, pulseTrain,
+  alphaM, alphaN, betaM, alphaH, betaH, betaN, actionSpectrum, wavelengthToRGB, pulseTrain,
+  gatingTable,
 } from '../js/model.js';
 
 /* --------------------- Hodgkin-Huxley internals --------------------- */
@@ -216,5 +217,51 @@ test('spike counting and the follow count agree with each other', () => {
     assert.ok(r.followed <= r.spikes.length, 'cannot follow more pulses than there were spikes');
     assert.ok(r.followed <= r.pulses, 'cannot follow more pulses than were delivered');
     assert.ok(Math.abs(r.fidelity - r.followed / r.pulses) < 1e-9);
+  }
+});
+
+/* ---------------------- the gating-rate table ------------------------ */
+
+test('the gating table holds the published rate functions, not an approximation of them', () => {
+  // Each grid point must be exactly what the HH equations give there; only the
+  // values between grid points are interpolated.
+  const dt = DEFAULTS.dt, P = phi(HH.T);
+  const tab = gatingTable(dt, P);
+  const pairs = [[alphaM, betaM], [alphaH, betaH], [alphaN, betaN]];
+  for (const v of [-100, -77.5, -65, -55, -40, -12.34, 0, 30, 60]) {
+    const i = Math.round((v + 100) / 0.01);
+    pairs.forEach(([a, b], k) => {
+      const A = a(-100 + i * 0.01), B = b(-100 + i * 0.01);
+      assert.ok(Math.abs(tab[i * 6 + 2 * k] - A / (A + B)) < 1e-12, `steady state ${k} at ${v} mV`);
+      assert.ok(Math.abs(tab[i * 6 + 2 * k + 1] - Math.exp(-(A + B) * P * dt)) < 1e-12,
+        `decay factor ${k} at ${v} mV`);
+    });
+  }
+});
+
+test('interpolating the table changes no spike and no number on the page', () => {
+  // The table exists only to make a run several times cheaper. It must not
+  // move a single spike or any readout relative to evaluating the equations
+  // exactly at every step. Covers the presets, both failure modes and a
+  // control cell.
+  const settings = [
+    {}, { freqHz: 5 }, { freqHz: 20 }, { freqHz: 30 }, { freqHz: 60, pulseMs: 20 },
+    { expression: 0.08 }, { expression: 0.15 }, { expression: 0.6, freqHz: 40 },
+    { power: 0.1 }, { power: 0.5, pulseMs: 1 }, { opsin: false },
+    { freqHz: 1, pulseMs: 1000, trainMs: 1000, tailMs: 50 },
+  ];
+  for (const o of settings) {
+    const fast = simulate(o), exact = simulate({ ...o, rateTable: false });
+    const what = JSON.stringify(o);
+    assert.equal(fast.spikes.length, exact.spikes.length, `spike count differs for ${what}`);
+    for (let i = 0; i < fast.spikes.length; i++) {
+      assert.ok(Math.abs(fast.spikes[i] - exact.spikes[i]) <= DEFAULTS.dt + 1e-9,
+        `spike ${i} moved for ${what}`);
+    }
+    assert.equal(fast.followed, exact.followed, `follow count differs for ${what}`);
+    assert.equal(fast.firstFailure, exact.firstFailure, `failure time differs for ${what}`);
+    let maxDV = 0;
+    for (let i = 0; i < fast.V.length; i++) maxDV = Math.max(maxDV, Math.abs(fast.V[i] - exact.V[i]));
+    assert.ok(maxDV < 0.5, `voltage trace moved by ${maxDV.toFixed(3)} mV for ${what}`);
   }
 });

@@ -20,6 +20,7 @@ const EYE = '255,150,60';
 
 export function createDish(canvas, opts = {}) {
   const hud = opts.hud || null;
+  let hudText = '';
   let W = 0, H = 0, ctx = null;
   let cells = [];
   let lamp = { x: 0.88, y: 0.5 };      // normalised to the canvas box
@@ -205,9 +206,9 @@ export function createDish(canvas, opts = {}) {
 
     if (hud) {
       const pct = Math.round(nearFraction() * 100);
-      hud.textContent = lampOn
-        ? `${pct}% of cells on the lit side`
-        : 'lamp off — swimming at random';
+      const txt = lampOn ? `${pct}% of cells on the lit side` : 'lamp off — swimming at random';
+      // only touch the DOM when the words change, not on every frame
+      if (txt !== hudText) { hud.textContent = txt; hudText = txt; }
     }
   }
 

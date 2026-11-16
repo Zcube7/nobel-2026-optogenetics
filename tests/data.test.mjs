@@ -8,7 +8,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -41,6 +41,11 @@ test('there are exactly three laureates, each complete', () => {
     }
     assert.ok(l.born > 1900 && l.born < 2000, `${l.name}: implausible birth year`);
     assert.ok(existsSync(join(ROOT, l.portrait)), `portrait file missing: ${l.portrait}`);
+    // the hero chip uses a small square crop; it must exist and actually be small
+    assert.ok(l.thumb, `${l.name} has no hero thumbnail`);
+    assert.ok(existsSync(join(ROOT, l.thumb)), `thumbnail file missing: ${l.thumb}`);
+    assert.ok(statSync(join(ROOT, l.thumb)).size < 12 * 1024,
+      `${l.thumb} is too heavy for a 44 px chip`);
     assert.ok(/CC0|CC BY/.test(l.portraitCredit),
       `${l.name}: portrait credit must name a licence`);
   }

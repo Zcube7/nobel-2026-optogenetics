@@ -11,10 +11,41 @@
 <meta property="og:type" content="website">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/style.css">
+<!-- The whole module graph, so the browser fetches it in one round instead of
+     discovering the viz-* files only after main.js has been parsed. Kept in step
+     with the imports by tests/page.test.mjs. -->
+<link rel="modulepreload" href="js/main.js">
+<link rel="modulepreload" href="js/data.js">
+<link rel="modulepreload" href="js/model.js">
+<link rel="modulepreload" href="js/canvas.js">
+<link rel="modulepreload" href="js/viz-dish.js">
+<link rel="modulepreload" href="js/viz-channel.js">
+<link rel="modulepreload" href="js/viz-neuron.js">
+<link rel="modulepreload" href="js/viz-mouse.js">
+<link rel="modulepreload" href="js/viz-small.js">
 </head>
 <body>
 
 <a class="skip" href="#act-1">Skip to the story</a>
+
+<div class="bootfail" id="bootFail" role="alert" hidden>
+  <strong>The simulations on this page did not start.</strong>
+  <span id="bootFailWhy"></span>
+</div>
+<script>
+  // A classic script on purpose: it still runs when the ES modules below
+  // cannot. If main.js never got as far as publishing window.__nobel, say why
+  // rather than leaving blank canvases and empty placeholders.
+  window.addEventListener('load', function () {
+    if (window.__nobel) return;
+    document.getElementById('bootFailWhy').textContent = location.protocol === 'file:'
+      ? 'Browsers refuse to load JavaScript modules from a file opened straight from disk. ' +
+        'In the project folder run “node serve.mjs”, then open http://127.0.0.1:4192/.'
+      : 'This usually means the browser is too old for JavaScript modules. ' +
+        'The text still reads fine; the demos need a current browser.';
+    document.getElementById('bootFail').hidden = false;
+  });
+</script>
 
 <!-- ============================ HERO ============================ -->
 <header class="hero">
@@ -157,7 +188,7 @@
 
       <figure class="act__viz">
         <div class="viz" id="dishViz">
-          <canvas id="dishCanvas"></canvas>
+          <canvas id="dishCanvas" role="img" aria-label="A simulated dish of algae, each dot one cell. With the lamp on, the cells gather on the side nearest it; the counter above says what share are on the lit side."></canvas>
           <div class="viz__hud" id="dishHud"></div>
         </div>
         <div class="controls">
@@ -223,7 +254,7 @@
 
       <figure class="act__viz">
         <div class="viz" id="channelViz">
-          <canvas id="channelCanvas"></canvas>
+          <canvas id="channelCanvas" role="img" aria-label="Cross-section of a cell membrane with a channelrhodopsin-2 channel in it. Under blue light the pore opens and positive ions flow in; below, a live trace of the current, which peaks and then sags to a plateau."></canvas>
         </div>
         <div class="controls">
           <label class="ctl">
@@ -271,8 +302,10 @@
     </div>
 
     <figure class="act__viz act__viz--wide">
+      <!-- the scope the recording stays pinned within on a phone: itself and its controls -->
+      <div class="act__pin">
       <div class="viz viz--neuron" id="neuronViz">
-        <canvas id="neuronCanvas"></canvas>
+        <canvas id="neuronCanvas" role="img" aria-label="Simulated recording from the neuron: the light pulses delivered, the photocurrent, and the membrane potential with its action potentials. The numbers are summarised in text below the controls."></canvas>
       </div>
 
       <div class="controls controls--grid">
@@ -308,6 +341,7 @@
             <button class="btn btn--sm" type="button" data-preset="dim">Too little opsin</button>
           </div>
         </div>
+      </div>
       </div>
 
       <div class="readout" id="neuronReadout"></div>
@@ -388,7 +422,7 @@
 
       <figure class="act__viz">
         <div class="viz" id="mouseViz">
-          <canvas id="mouseCanvas"></canvas>
+          <canvas id="mouseCanvas" role="img" aria-label="Schematic mouse head with an optical fibre entering the motor cortex. The whiskers flick forward each time the simulated neurons fire."></canvas>
         </div>
         <div class="controls">
           <button class="btn" id="mousePlay" type="button" data-state="play">Deliver the pulse train</button>

@@ -32,10 +32,15 @@ export function createNeuron(canvas, opts = {}) {
   let speed = 1 / 2.2;         // 1 s of model time takes 2.2 s on screen
   let playing = true;
 
-  function setResult(r) {
+  /**
+   * `instant` shows the whole trace at once instead of sweeping it in. Used
+   * while a slider is being dragged: restarting the sweep on every input event
+   * would leave the reader looking at an almost empty plot until they let go.
+   */
+  function setResult(r, { instant = false } = {}) {
     res = r;
-    sweep = 0;
-    playing = true;
+    sweep = instant ? r.totalMs : 0;
+    playing = !instant;
   }
 
   function step(dt) {

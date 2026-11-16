@@ -55,6 +55,11 @@ Being clear about this matters more than the pictures.
 - Free parameters, and the only ones: `expression` (how much opsin the cell made — genuinely
   per-cell in an experiment) and `LIGHT_K`, set so the channel opens with the ~0.2 ms time
   constant the Nobel Committee quotes.
+- One numerical shortcut, the same one NEURON's own HH mechanism uses: the gating rates are
+  tabulated against voltage (0.01 mV spacing, built from the published equations) and
+  interpolated. A run is about six times cheaper, which is what lets the Act III trace follow a
+  slider as you drag it. Across a 507-setting sweep it moves no spike and no number on the page;
+  `tests/model.test.mjs` checks it against evaluating the equations exactly.
 
 **Schematic, not simulated:** the phototaxis dish (plausible behaviour, not a fluid or
 flagellar model), the membrane cross-section, the mouse head and whiskers, and the
@@ -63,7 +68,8 @@ illustrative shape.
 
 Two places where the display is deliberately slowed, and says so on screen: the Act II channel
 runs at about 1/20 of real speed (the whole transient is otherwise over in under one trace
-sample), and the Act III sweep replays 1 s of model time over about 2 s.
+sample), and the Act III sweep replays 1 s of model time over about 2 s. While you drag an
+Act III slider the whole trace is redrawn at once instead, so you can see what the change does.
 
 ---
 
@@ -75,7 +81,9 @@ Nothing to install, no build step, no dependencies, no network calls at runtime.
 node serve.mjs
 ```
 
-Then open <http://127.0.0.1:4192/>. Opening `index.html` directly from disk works too.
+Then open <http://127.0.0.1:4192/>. Opening `index.html` straight from disk does not work in
+Chrome or Edge — they refuse to load JavaScript modules over `file://` — and the page says so in a
+banner at the top if you try.
 
 Tests:
 
@@ -83,11 +91,14 @@ Tests:
 node --test tests/*.mjs
 ```
 
-30 checks over two files. They are not snapshots of current behaviour — each pins a claim the
+35 checks over three files. They are not snapshots of current behaviour — each pins a claim the
 page makes to the reader, so if the model drifts the page stops being true and a test goes red.
 `tests/data.test.mjs` additionally checks that every fact has a named source, that the timeline
 is ordered and matches its own headline, that no figure is hard-coded into the prose instead of
 being read from `js/data.js`, and that every portrait file referenced actually exists.
+`tests/page.test.mjs` keeps files that must agree in step: the preload hints against the real
+import graph, the address the start-up notice gives against the server's port, and a text
+description on every demo canvas.
 
 ---
 
@@ -106,7 +117,7 @@ js/viz-mouse.js      Act IV
 js/viz-small.js      hero background, watching-vs-driving
 js/main.js           binds data.js into the page and wires the controls
 tests/               node --test
-assets/portraits/    three photographs, under their own licences — see CREDITS.md
+assets/portraits/    three photographs and their 96 px hero crops, under their own licences — see CREDITS.md
 ```
 
 Nothing on the page types a number into the prose. `index.html` carries

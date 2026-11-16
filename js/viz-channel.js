@@ -174,6 +174,9 @@ export function createChannel(canvas, opts = {}) {
     drawProtein(cx, memY, memH, poreHalf, o, rgb, eff);
 
     // --- ions -------------------------------------------------------------
+    // Set once: assigning ctx.font re-parses the font string every time.
+    ctx.font = '7px ui-monospace, Menlo, monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     for (const ion of ions) {
       const t = ion.p;
       const y = top - memH * 0.9 + t * (memH * 2.5);
@@ -183,8 +186,6 @@ export function createChannel(canvas, opts = {}) {
       ctx.fillStyle = `rgba(255,120,120,${0.85 * a})`;
       ctx.beginPath(); ctx.arc(x, y, 2.9, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = `rgba(255,255,255,${0.9 * a})`;
-      ctx.font = '7px ' + 'ui-monospace, Menlo, monospace';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('+', x, y + 0.4);
     }
 
@@ -251,20 +252,68 @@ export function createChannel(canvas, opts = {}) {
     label(ctx, 'retinal', cx + half + 9, memY + 3, { color: 'rgba(255,170,110,.8)', size: 9 });
   }
 
+  /** Width of `text` as label() would draw it. */
+  function textW(text, size) {
+    ctx.font = `${size}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+    return ctx.measureText(text).width;
+  }
+
+  /**
+   * Lay the footer captions out in as few rows as fit the plot width: all
+   * three on one line on a wide canvas, the centre one dropped to its own line
+   * when that would collide, and one per line on the narrowest phones. Fixed
+   * positions put all three on top of each other below about 480 px.
+   */
+  function footerRows(items, x0, w) {
+    const gap = 12;
+    const [L, C, R] = items.map((it) => ({ ...it, w: textW(it.text, it.size) }));
+    const mid = x0 + w / 2;
+    if (mid - C.w / 2 >= x0 + L.w + gap && mid + C.w / 2 <= x0 + w - R.w - gap) {
+      return [[{ ...L, x: x0, align: 'left' }, { ...C, x: mid, align: 'center' }, { ...R, x: x0 + w, align: 'right' }]];
+    }
+    if (L.w + R.w + gap <= w) {
+      return [
+        [{ ...L, x: x0, align: 'left' }, { ...R, x: x0 + w, align: 'right' }],
+        [{ ...C, x: C.w <= w ? mid : x0, align: C.w <= w ? 'center' : 'left' }],
+      ];
+    }
+    return [L, R, C].map((it) => [{ ...it, x: x0, align: 'left' }]);
+  }
+
   /** Photocurrent trace. Downward is inward current, as in the literature. */
   function drawTrace(y0, h, rgb, eff) {
-    const padL = 42, padR = 12;
+    const axisSize = 9;
+    const padL = Math.max(42, Math.ceil(textW('current', axisSize)) + 12), padR = 12;
     const w = W - padL - padR;
-    const base = y0 + 6;
     const maxI = 1.0;
+
+    // Footer captions first, so the plot gets whatever height is left.
+    const spanMs = Math.round(HIST * SAMPLE * TIME_SCALE);
+    const ROW = 13;
+    const rows = footerRows([
+      { text: `absorption at ${nm} nm: ${Math.round(actionSpectrum(nm) * 100)}%`, size: 9.5,
+        color: eff < 0.06 ? '#ff8f6b' : '#6c7689' },
+      // Say what the axis really is: well under a second of channel time,
+      // replayed far slower than real speed.
+      { text: `${spanMs} ms of channel time, slowed ~${Math.round(1000 / TIME_SCALE)}×`, size: 9,
+        color: '#4a5467' },
+      { text: `channels open ${Math.round(open() * 100)}%`, size: 9.5, color: '#6c7689' },
+    ], padL, w);
+    const footTop = H - rows.length * ROW - 4;
+    // Keep the plot at least MIN_PLOT tall: when the captions take two or three
+    // lines on a phone, start the trace higher (the strip above it is empty —
+    // the ions have faded out by then) rather than squash it to a sliver.
+    const MIN_PLOT = 56;
+    const base = Math.min(y0, footTop - 6 - MIN_PLOT - 6) + 6;
+    const plotH = footTop - 6 - base;
 
     ctx.save();
     ctx.strokeStyle = 'rgba(255,255,255,.07)';
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(padL, base); ctx.lineTo(padL + w, base); ctx.stroke();
-    label(ctx, '0', padL - 6, base, { color: '#4a5467', size: 9, align: 'right', baseline: 'middle' });
-    label(ctx, 'inward', padL - 6, base + h * 0.74, { color: '#4a5467', size: 9, align: 'right', baseline: 'middle' });
-    label(ctx, 'current', padL - 6, base + h * 0.74 + 10, { color: '#4a5467', size: 9, align: 'right', baseline: 'middle' });
+    label(ctx, '0', padL - 6, base, { color: '#4a5467', size: axisSize, align: 'right', baseline: 'middle' });
+    label(ctx, 'inward', padL - 6, base + plotH - 12, { color: '#4a5467', size: axisSize, align: 'right', baseline: 'middle' });
+    label(ctx, 'current', padL - 6, base + plotH - 2, { color: '#4a5467', size: axisSize, align: 'right', baseline: 'middle' });
 
     ctx.beginPath();
     const n = Math.min(histT, HIST);
@@ -272,7 +321,7 @@ export function createChannel(canvas, opts = {}) {
       const idx = (histT - n + i) % HIST;
       const v = hist[(idx + HIST) % HIST];
       const x = padL + (i / (HIST - 1)) * w;
-      const yy = base + (v / maxI) * (h * 0.82);
+      const yy = base + (v / maxI) * plotH;
       if (i === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
     }
     ctx.strokeStyle = `rgba(${rgb},.95)`;
@@ -280,9 +329,11 @@ export function createChannel(canvas, opts = {}) {
     ctx.lineJoin = 'round';
     ctx.stroke();
 
-    // fill under the curve
+    // fill under the curve — closed at the last sample, not at the right edge:
+    // right after a dark-adapt the trace only reaches part way across, and
+    // closing at the edge drew a stray triangle over the empty part.
     if (n > 1) {
-      ctx.lineTo(padL + w, base);
+      ctx.lineTo(padL + ((n - 1) / (HIST - 1)) * w, base);
       ctx.lineTo(padL, base);
       ctx.closePath();
       ctx.fillStyle = `rgba(${rgb},.12)`;
@@ -301,16 +352,19 @@ export function createChannel(canvas, opts = {}) {
       const nowV = hist[((histT - 1) % HIST + HIST) % HIST];
       if (pk > nowV * 1.25 && pk > 0.1) {
         const px = padL + (pkI / (HIST - 1)) * w;
-        const py = base + (pk / maxI) * (h * 0.82);
+        const py = base + (pk / maxI) * plotH;
+        // Beside the trough rather than under it: a near-full peak sits on the
+        // floor of the plot, and a label hung below it landed in the captions.
+        // Right of the trough is empty, because the trace sags back up there.
+        const right = px < padL + w * 0.72;
+        const dir = right ? 1 : -1;
         ctx.strokeStyle = 'rgba(255,255,255,.28)';
         ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, py + 13); ctx.stroke();
-        // keep the label inside the plot even when the peak is near an edge
-        const right = px < padL + w * 0.72;
-        label(ctx, `peak ${Math.round(pk * 100)}%`, px + (right ? 5 : -5), py + 13,
+        ctx.beginPath(); ctx.moveTo(px + dir * 3, py); ctx.lineTo(px + dir * 10, py); ctx.stroke();
+        label(ctx, `peak ${Math.round(pk * 100)}%`, px + dir * 13, Math.min(py, base + plotH - 5),
           { color: 'rgba(255,255,255,.7)', size: 9, baseline: 'middle', align: right ? 'left' : 'right' });
 
-        const ly = base + (nowV / maxI) * (h * 0.82);
+        const ly = base + (nowV / maxI) * plotH;
         ctx.setLineDash([3, 4]);
         ctx.strokeStyle = 'rgba(255,255,255,.18)';
         ctx.beginPath(); ctx.moveTo(padL, ly); ctx.lineTo(padL + w, ly); ctx.stroke();
@@ -320,22 +374,20 @@ export function createChannel(canvas, opts = {}) {
       }
     }
 
-    const pct = Math.round(open() * 100);
-    label(ctx, `channels open ${pct}%`, padL + w, base + h * 0.9,
-      { color: '#6c7689', size: 9.5, align: 'right' });
-    label(ctx, `absorption at ${nm} nm: ${Math.round(actionSpectrum(nm) * 100)}%`,
-      padL, base + h * 0.9, { color: eff < 0.06 ? '#ff8f6b' : '#6c7689', size: 9.5 });
-
-    // Say what the axis really is: this window is well under a second of
-    // channel time, replayed at about a tenth of real speed.
-    const spanMs = Math.round(HIST * SAMPLE * TIME_SCALE);
-    label(ctx, `${spanMs} ms of channel time, slowed ~${Math.round(1000 / TIME_SCALE)}×`,
-      padL + w / 2, base + h * 0.9, { color: '#4a5467', size: 9, align: 'center' });
+    rows.forEach((row, r) => {
+      for (const it of row) {
+        label(ctx, it.text, it.x, footTop + (r + 1) * ROW - 3,
+          { color: it.color, size: it.size, align: it.align });
+      }
+    });
     ctx.restore();
   }
 
   function resize() {
-    const f = fit(canvas, 4 / 3.2);
+    // Squarer on a phone: the footer captions need a second line there, and
+    // the trace would otherwise be squeezed to a sliver.
+    const el = canvas.parentElement;
+    const f = fit(canvas, (el.clientWidth || 600) < 480 ? 1 : 4 / 3.2);
     ctx = f.ctx; W = f.w; H = f.h;
   }
 

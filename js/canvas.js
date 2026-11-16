@@ -88,7 +88,11 @@ export function loop(fn, { visibleOnly = null } = {}) {
 /** Re-run fn when the element's width changes (debounced to the next frame). */
 export function onResize(el, fn) {
   if ('ResizeObserver' in window) {
-    let w = -1, queued = false;
+    // Start from the current width: every caller has just sized itself, and a
+    // ResizeObserver always fires once on observe(). Starting from -1 made that
+    // first call rebuild each canvas again for nothing (re-scattering the hero
+    // field and the watching/driving cells a frame after they first appeared).
+    let w = el.clientWidth, queued = false;
     const ro = new ResizeObserver(() => {
       const nw = el.clientWidth;
       if (nw === w || queued) return;

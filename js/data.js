@@ -38,6 +38,7 @@ export const LAUREATES = [
       'that a single protein must both catch the light and act as the ion channel. At the time no such ' +
       'protein was known, and the idea was met with scepticism.',
     portrait: 'assets/portraits/hegemann.jpg',
+    thumb: 'assets/portraits/hegemann-96.jpg',     // square crop for the 44 px hero chip
     portraitCredit: 'Millencolin, CC BY-SA 4.0, via Wikimedia Commons',
     src: 'nobel-press',
   },
@@ -54,6 +55,7 @@ export const LAUREATES = [
       'proteins were light-gated ion channels — channelrhodopsin-1 and channelrhodopsin-2. The same ' +
       'proteins made mammalian cells light-sensitive too.',
     portrait: 'assets/portraits/nagel.jpg',
+    thumb: 'assets/portraits/nagel-96.jpg',     // square crop for the 44 px hero chip
     portraitCredit: 'Christian Wiese, CC0, via Wikimedia Commons',
     src: 'nobel-press',
   },
@@ -70,6 +72,7 @@ export const LAUREATES = [
       'neurons and triggered nerve impulses with blue light (2005); two years later he was steering ' +
       'neurons through an optical fibre in the brain of a living mouse.',
     portrait: 'assets/portraits/deisseroth.jpg',
+    thumb: 'assets/portraits/deisseroth-96.jpg',     // square crop for the 44 px hero chip
     portraitCredit: 'Christopher Michel, CC BY-SA 4.0, via Wikimedia Commons',
     src: 'nobel-press',
   },

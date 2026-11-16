@@ -87,6 +87,14 @@ export function createHero(canvas) {
   }
 
   resize();
+  // Pure decoration, so it is the first thing to hold still for readers who
+  // asked their system for less motion. The demos below keep moving: there the
+  // motion is the content.
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    draw();
+    onResize(canvas.parentElement, () => { resize(); draw(); });
+    return;
+  }
   onResize(canvas.parentElement, resize);
   loop((dt) => { step(dt); draw(); }, { visibleOnly: canvas });
 }

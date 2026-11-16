@@ -54,7 +54,10 @@ function buildHeroLaureates() {
   for (const p of LAUREATES) {
     const card = el('div', 'lcard');
     const img = el('img');
-    img.src = p.portrait;
+    // A 96 px square, ~3 KB, rather than the 60-100 KB portrait: the chip is
+    // 44 px across and sits on the critical path of the first screen.
+    img.src = p.thumb || p.portrait;
+    img.width = 44; img.height = 44;
     img.alt = '';                     // decorative here; named in the text beside it
     img.loading = 'eager';            // above the fold — lazy here just delays the hero
     img.fetchPriority = 'high';
@@ -305,12 +308,11 @@ function wireNeuron(onNewResult) {
     for (const c of [power, expr]) c.disabled = !o.opsin;
   }
 
-  let timer = null;
-  function run() {
+  function run({ instant = false } = {}) {
     const o = opts();
     syncLabels(o);
     const res = simulate(o);
-    viz.setResult(res);
+    viz.setResult(res, { instant });
     renderReadout(readout, res);
     if (onNewResult) onNewResult(res);
     // mark which preset, if any, matches the current settings
@@ -323,13 +325,23 @@ function wireNeuron(onNewResult) {
     }
   }
 
-  function runSoon() {
-    clearTimeout(timer);
-    timer = setTimeout(run, 70);     // keep dragging a slider responsive
+  // While a slider is dragged, re-run on the leading edge and then at most once
+  // per THROTTLE ms, always finishing on the final value. A run takes a few ms
+  // on a laptop (the gating table in model.js), so the trace follows the thumb;
+  // on a slow phone the throttle keeps input from queueing up behind it.
+  const THROTTLE = 40;
+  let timer = null, queued = false;
+  function runLive() {
+    if (timer) { queued = true; return; }
+    run({ instant: true });
+    timer = setTimeout(() => {
+      timer = null;
+      if (queued) { queued = false; runLive(); }
+    }, THROTTLE);
   }
 
-  for (const c of [freq, pw, power, expr]) c.addEventListener('input', runSoon);
-  opsin.addEventListener('change', run);
+  for (const c of [freq, pw, power, expr]) c.addEventListener('input', runLive);
+  opsin.addEventListener('change', () => run());
 
   for (const b of $$('[data-preset]')) {
     b.addEventListener('click', () => {

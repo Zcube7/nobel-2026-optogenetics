@@ -61,6 +61,14 @@ body {
 
 :focus-visible { outline: 2px solid var(--blue-soft); outline-offset: 3px; border-radius: 4px; }
 
+.bootfail {
+  position: sticky; top: 0; z-index: 90;
+  padding: .8rem var(--pad);
+  background: #2a160e; border-bottom: 1px solid #6b3a22;
+  color: #ffd2b8; font-size: .9rem; line-height: 1.5;
+}
+.bootfail strong { color: #fff; margin-right: .35em; }
+
 h1, h2, h3, h4 { font-family: var(--serif); font-weight: 600; line-height: 1.14; margin: 0 0 .6em; letter-spacing: -.012em; }
 h2 { font-size: clamp(1.85rem, 4.4vw, 3rem); }
 h3 { font-size: clamp(1.2rem, 2.2vw, 1.5rem); }
@@ -242,6 +250,23 @@ a:hover { color: #fff; }
   font-family: var(--mono); font-size: .7rem; color: var(--ink-2);
   background: rgba(5,7,12,.72); border: 1px solid var(--rule);
   padding: .3rem .55rem; border-radius: 6px; pointer-events: none;
+}
+/* On a phone the Act III controls stack below the recording, so dragging a
+   slider used to scroll the very trace it changes off the screen. Pin the
+   recording while its own controls are in view (.act__pin), and let go before
+   the readout so the numbers never slide underneath it. Only where the screen
+   is tall enough to leave room for a slider beside it. */
+/* (after .viz, which sets position: relative) */
+@media (max-width: 900px) and (min-height: 600px) {
+  .viz--neuron {
+    position: sticky; top: 0; z-index: 3;
+    box-shadow: 0 14px 28px -10px rgba(0,0,0,.85);
+  }
+  /* keyboard focus must not park a slider underneath the pinned recording */
+  .act__pin .controls :is(input, button) { scroll-margin-top: calc(100vw / 2.15 + 2rem); }
+}
+@media (max-width: 559px) and (min-height: 600px) {
+  .act__pin .controls :is(input, button) { scroll-margin-top: calc(100vw / 1.05 + 1rem); }
 }
 
 /* --- controls ---------------------------------------------------- */

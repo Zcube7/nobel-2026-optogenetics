@@ -10,8 +10,13 @@ rest of this repository. Each is reproduced here under its own licence, as state
 | `nagel.jpg` | Georg Nagel | Christian Wiese | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) (public domain dedication) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Georg_Nagel_2013.jpg) |
 
 The two CC BY-SA 4.0 images are redistributed unmodified apart from being scaled down to a
-500 px-wide standard thumbnail. Anyone reusing them must keep the attribution above and share
-any adaptation under the same licence. The CC0 image carries no such condition.
+standard Wikimedia thumbnail (at most 500 px wide). Anyone reusing them must keep the attribution
+above and share any adaptation under the same licence. The CC0 image carries no such condition.
+
+The `*-96.jpg` files are 96 × 96 px square crops of the same three photographs, used for the
+small chips at the top of the page. They are adaptations, so each carries the licence and
+attribution of its source above: `deisseroth-96.jpg` and `hegemann-96.jpg` are CC BY-SA 4.0,
+`nagel-96.jpg` is CC0.
 
 ## Not included here
 

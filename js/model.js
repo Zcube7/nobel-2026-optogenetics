@@ -97,6 +97,46 @@ export function restingGates(V = HH.Vrest) {
   };
 }
 
+/*
+ * The gating update below needs, for each of m, h and n, a steady state
+ * a/(a+b) and a decay factor exp(-(a+b)·phi·dt) at the current voltage. That
+ * is nine exponentials per step and 135,000 steps per trial — most of the cost
+ * of a run, and a run happens on every slider move.
+ *
+ * So, as NEURON's own HH mechanism has always done, the six values are
+ * tabulated once against voltage and linearly interpolated. The table is built
+ * from the same published rate functions above, at 0.01 mV spacing; across a
+ * 507-setting sweep it changes no spike count and no spike time, and moves the
+ * voltage trace by at most about 0.1 mV on a spike's upstroke. Outside the
+ * tabulated range the exact functions are used, and `rateTable: false` forces
+ * them everywhere (tests/model.test.mjs compares the two).
+ */
+const TABLE_LO = -100, TABLE_HI = 60, TABLE_STEP = 0.01;   // mV
+const TABLE_N = Math.round((TABLE_HI - TABLE_LO) / TABLE_STEP) + 1;
+const TABLE_INV = 1 / TABLE_STEP;
+const tables = new Map();
+
+/** Interleaved [mInf, mDecay, hInf, hDecay, nInf, nDecay] per voltage step. */
+export function gatingTable(dt, P = phi(HH.T)) {
+  const key = `${dt}|${P}`;
+  let tab = tables.get(key);
+  if (tab) return tab;
+  tab = new Float64Array(TABLE_N * 6);
+  const put = (j, a, b) => {
+    tab[j] = a / (a + b);
+    tab[j + 1] = Math.exp(-(a + b) * P * dt);
+  };
+  for (let i = 0; i < TABLE_N; i++) {
+    const v = TABLE_LO + i * TABLE_STEP;
+    put(i * 6, alphaM(v), betaM(v));
+    put(i * 6 + 2, alphaH(v), betaH(v));
+    put(i * 6 + 4, alphaN(v), betaN(v));
+  }
+  if (tables.size > 3) tables.clear();      // tests try a second dt; nothing more
+  tables.set(key, tab);
+  return tab;
+}
+
 /**
  * Schematic ChR2 action spectrum, normalised to 1 at the peak.
  * A skewed Gaussian centred on 470 nm: broad on the blue side, falling steeply
@@ -146,14 +186,6 @@ export function pulseTrain({ freqHz, pulseMs, trainMs, startMs = 100 }) {
   return out;
 }
 
-/** 1 while a pulse is on, 0 otherwise. */
-function lightAt(t, onsets, pulseMs, cursor) {
-  // onsets is sorted; cursor.i walks forward so this stays O(1) per step
-  while (cursor.i < onsets.length - 1 && t >= onsets[cursor.i + 1]) cursor.i++;
-  const s = onsets[cursor.i];
-  return t >= s && t < s + pulseMs ? 1 : 0;
-}
-
 /* ---------------------------------------------------------------- *
  * The simulation
  * ---------------------------------------------------------------- */
@@ -174,6 +206,7 @@ export const DEFAULTS = {
   startMs: 100,
   dt: 0.01,            // ms
   sampleMs: 0.05,      // trace resolution kept for drawing
+  rateTable: true,     // false = evaluate the HH rate functions exactly every step
 };
 
 /**
@@ -194,8 +227,10 @@ export function simulate(opts = {}) {
   const nOut = Math.floor(steps / every) + 1;
 
   const onsets = pulseTrain(o);
-  const cursor = { i: 0 };
+  const nOn = onsets.length;
   const P = phi(HH.T);
+  const tab = o.rateTable ? gatingTable(dt, P) : null;
+  const tabMax = TABLE_N - 1;            // interpolation needs index i and i + 1
 
   // state
   let V = HH.Vrest;
@@ -215,45 +250,64 @@ export function simulate(opts = {}) {
   const k1 = CHR2.eps1 * CHR2.LIGHT_K * o.power;
   const k2 = CHR2.eps2 * CHR2.LIGHT_K * o.power;
 
+  // Hoisted out of the loop: it runs 135,000 times per trial.
+  const { Gd1, Gd2, e12, e21, Gr, gamma, EChR2 } = CHR2;
+  const { gNa, ENa, gK, EK, gL, EL, Cm } = HH;
+  const pulseMs = o.pulseMs;
+  const Pdt = P * dt;
+
   let prevV = V;
   let w = 0;
+  let pi = 0;                            // index of the latest pulse onset <= t
 
   for (let s = 0; s <= steps; s++) {
     const t = s * dt;
-    const light = lightAt(t, onsets, o.pulseMs, cursor);
+    // onsets are sorted, so walking an index forward keeps this O(1) per step
+    while (pi < nOn - 1 && t >= onsets[pi + 1]) pi++;
+    const light = nOn && t >= onsets[pi] && t < onsets[pi] + pulseMs ? 1 : 0;
 
     // --- channelrhodopsin photocycle ---------------------------------
     const p1 = light * k1;
     const p2 = light * k2;
-    const dC1 = -p1 * C1 + CHR2.Gd1 * O1 + CHR2.Gr * C2;
-    const dO1 = p1 * C1 - (CHR2.Gd1 + CHR2.e12) * O1 + CHR2.e21 * O2;
-    const dO2 = p2 * C2 + CHR2.e12 * O1 - (CHR2.e21 + CHR2.Gd2) * O2;
-    const dC2 = CHR2.Gd2 * O2 - (p2 + CHR2.Gr) * C2;
+    const dC1 = -p1 * C1 + Gd1 * O1 + Gr * C2;
+    const dO1 = p1 * C1 - (Gd1 + e12) * O1 + e21 * O2;
+    const dO2 = p2 * C2 + e12 * O1 - (e21 + Gd2) * O2;
+    const dC2 = Gd2 * O2 - (p2 + Gr) * C2;
     C1 += dC1 * dt; O1 += dO1 * dt; O2 += dO2 * dt; C2 += dC2 * dt;
 
-    const open = O1 + CHR2.gamma * O2;
-    const iChR2 = gMax * open * (V - CHR2.EChR2);   // uA/cm^2
+    const open = O1 + gamma * O2;
+    const iChR2 = gMax * open * (V - EChR2);        // uA/cm^2
 
     // --- Hodgkin-Huxley membrane -------------------------------------
-    const iNa = HH.gNa * m * m * m * h * (V - HH.ENa);
-    const iK = HH.gK * n * n * n * n * (V - HH.EK);
-    const iL = HH.gL * (V - HH.EL);
+    const iNa = gNa * m * m * m * h * (V - ENa);
+    const iK = gK * n * n * n * n * (V - EK);
+    const iL = gL * (V - EL);
 
     prevV = V;
-    V += (dt / HH.Cm) * (-iNa - iK - iL - iChR2);
+    V += (dt / Cm) * (-iNa - iK - iL - iChR2);
 
-    // gating, exponential Euler at the reference voltage
-    const am = alphaM(prevV), bm = betaM(prevV);
-    const ah = alphaH(prevV), bh = betaH(prevV);
-    const an = alphaN(prevV), bn = betaN(prevV);
-    const step = (x, a, b) => {
-      const sum = (a + b) * P;
-      const inf = a / (a + b);
-      return inf + (x - inf) * Math.exp(-sum * dt);
-    };
-    m = step(m, am, bm);
-    h = step(h, ah, bh);
-    n = step(n, an, bn);
+    // gating, exponential Euler at the reference voltage:
+    //   x <- inf + (x - inf) * exp(-(a + b) * phi * dt)
+    const x = (prevV - TABLE_LO) * TABLE_INV;
+    if (tab && x >= 0 && x < tabMax) {
+      const i = x | 0, f = x - i, j = i * 6;
+      const mInf = tab[j] + f * (tab[j + 6] - tab[j]);
+      const mDec = tab[j + 1] + f * (tab[j + 7] - tab[j + 1]);
+      const hInf = tab[j + 2] + f * (tab[j + 8] - tab[j + 2]);
+      const hDec = tab[j + 3] + f * (tab[j + 9] - tab[j + 3]);
+      const nInf = tab[j + 4] + f * (tab[j + 10] - tab[j + 4]);
+      const nDec = tab[j + 5] + f * (tab[j + 11] - tab[j + 5]);
+      m = mInf + (m - mInf) * mDec;
+      h = hInf + (h - hInf) * hDec;
+      n = nInf + (n - nInf) * nDec;
+    } else {
+      const am = alphaM(prevV), bm = betaM(prevV);
+      const ah = alphaH(prevV), bh = betaH(prevV);
+      const an = alphaN(prevV), bn = betaN(prevV);
+      m = am / (am + bm) + (m - am / (am + bm)) * Math.exp(-(am + bm) * Pdt);
+      h = ah / (ah + bh) + (h - ah / (ah + bh)) * Math.exp(-(ah + bh) * Pdt);
+      n = an / (an + bn) + (n - an / (an + bn)) * Math.exp(-(an + bn) * Pdt);
+    }
 
     // --- spike detection: upward crossing of 0 mV ---------------------
     if (prevV < 0 && V >= 0) spikes.push(t);

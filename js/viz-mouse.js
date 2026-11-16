@@ -224,7 +224,17 @@ export function createMouse(canvas, opts = {}) {
     }
 
     label(ctx, 'optical fibre', fx + 9 * S, fTop + 14 * S, { color: 'rgba(143,208,255,.85)', size: 10 });
-    label(ctx, 'motor cortex', fx + 36 * S, fBot + 30 * S, { color: '#8a94a8', size: 10 });
+
+    // "motor cortex" sits outside the head on a leader line. Placed beside the
+    // cells it ran straight across the ear and the back of the skull.
+    const lx0 = fx + 24 * S, ly0 = fBot + 26 * S;     // edge of the cell cluster
+    const lx1 = px(98), ly1 = py(8);                  // just past the back of the head
+    ctx.strokeStyle = 'rgba(138,148,168,.45)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(lx0, ly0); ctx.lineTo(lx1 - 4, ly1); ctx.stroke();
+    ctx.fillStyle = 'rgba(138,148,168,.7)';
+    ctx.beginPath(); ctx.arc(lx0, ly0, 1.6, 0, Math.PI * 2); ctx.fill();
+    label(ctx, 'motor cortex', lx1, ly1, { color: '#8a94a8', size: 10, baseline: 'middle' });
   }
 
   function resize() {
